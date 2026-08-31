@@ -232,7 +232,6 @@ For the current Milestone 1 environment, install:
 * Python 3.13
 * Git
 * Visual Studio Code
-* Git
 * A GitHub account with access to the project repository
 
 Later milestones will introduce additional tools such as:
@@ -803,7 +802,7 @@ The project is planned to progress through the following stages.
 * Environment configuration
 * Documentation
 
-**Status: In Progress**
+**Status: Completed**
 
 ---
 
