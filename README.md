@@ -40,6 +40,8 @@ The final platform is intended to:
 
 ## Milestone 1 — Project Foundation & Local Development Environment
 
+**Status: Completed**
+
 ### Completed
 
 * GitHub repository and collaboration setup.
@@ -64,6 +66,63 @@ Flask Application
        ├── GET /
        │
        └── GET /health
+```
+
+---
+
+## Milestone 2 — Docker Containerization
+
+**Status: Completed**
+
+### Completed
+
+* Docker Desktop and Docker Engine verification.
+* Docker fundamentals and container lifecycle understanding.
+* Docker-ready Flask application configuration.
+* `.dockerignore` creation.
+* Dockerfile creation using `python:3.13-slim`.
+* Docker image build and verification.
+* Docker container execution with port mapping.
+* Runtime environment variable override testing.
+* Docker `HEALTHCHECK` configuration using `/health`.
+* Container failure and recovery testing.
+* Git feature branch, commit, push, Pull Request, and merge workflow.
+* Final Docker and Git verification on `main`.
+
+### M2 Docker flow
+
+```text
+Flask Application
+       │
+       ▼
+   Dockerfile
+       │
+       ▼
+Docker Image
+ai-devops-platform:m2.10
+       │
+       ▼
+Docker Container
+ai-devops-platform-m2
+       │
+       ├── Host port 5000 → Container port 5000
+       │
+       ├── GET /
+       │
+       └── GET /health
+                │
+                ▼
+        Docker HEALTHCHECK
+```
+
+### M2 verification result
+
+```text
+Container: running
+Health:     healthy
+GET /:      HTTP 200
+GET /health: HTTP 200
+Git:        main synchronized and clean
 ```
 
 ---
@@ -116,7 +175,7 @@ The final project is planned to evolve toward the following architecture:
           Recommendations
 ```
 
-> **Note:** Components shown beyond Milestone 1 are part of the planned project roadmap and are not yet implemented.
+> **Note:** Components beyond the completed M2 Docker layer are part of the planned project roadmap and are not yet implemented.
 
 ---
 
@@ -164,12 +223,17 @@ project-root/
 ├── docs/
 │   └── architecture.md
 │
+├── .dockerignore
 ├── .env.example
 ├── .gitignore
+├── Dockerfile
 ├── README.md
 ├── pytest.ini
 └── requirements.txt
 ```
+
+> Local-only files such as `venv/` and `.env` exist during development but are intentionally not part of the tracked project structure.
+
 
 ### Directory and file purposes
 
@@ -223,20 +287,28 @@ Contains pytest configuration, including the test directory and Python import pa
 
 Contains Python dependencies required by the project.
 
+#### `Dockerfile`
+
+Defines how the Flask application is packaged into a Docker image. The current Dockerfile uses Python 3.13 slim, installs dependencies from `requirements.txt`, copies the application, configures `APP_ENV` and `APP_PORT`, exposes port `5000`, defines a Docker `HEALTHCHECK`, and starts the application with `python -m app.main`.
+
+#### `.dockerignore`
+
+Controls which local files are excluded from the Docker build context. It excludes the virtual environment, `.env`, Git metadata, Python cache files, editor configuration, and log files.
+
 ---
 
 # 6. Prerequisites
 
-For the current Milestone 1 environment, install:
+For the completed M1 and M2 development environment, install:
 
 * Python 3.13
 * Git
 * Visual Studio Code
 * A GitHub account with access to the project repository
+* Docker Desktop with Linux containers enabled
 
 Later milestones will introduce additional tools such as:
 
-* Docker
 * Jenkins
 * Kubernetes
 * Prometheus
@@ -461,7 +533,213 @@ The health endpoint will become important in later milestones because it can be 
 
 ---
 
-# 15. Automated Testing
+# 16. Docker Containerization
+
+Milestone 2 adds Docker support so the Flask application can be built and run as a reproducible container.
+
+## Dockerfile
+
+The current Dockerfile is:
+
+```dockerfile
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app ./app
+
+ENV APP_ENV=development
+ENV APP_PORT=5000
+
+EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"
+
+CMD ["python", "-m", "app.main"]
+```
+
+### Dockerfile responsibilities
+
+* Uses Python 3.13 slim as the base image.
+* Sets `/app` as the working directory.
+* Installs dependencies from `requirements.txt`.
+* Copies the application source into the image.
+* Provides default `APP_ENV=development`.
+* Provides default `APP_PORT=5000`.
+* Exposes container port `5000`.
+* Uses `/health` as the Docker health-check target.
+* Starts the Flask application with `python -m app.main`.
+
+## `.dockerignore`
+
+The Docker build context excludes:
+
+```text
+venv/
+.env
+.git/
+.github/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+*.log
+```
+
+This keeps local development artifacts, Git metadata, environment secrets, and cache files out of the Docker build context.
+
+## Build the Docker image
+
+From the project root:
+
+```powershell
+docker build -t ai-devops-platform:m2.10 .
+```
+
+The M2 implementation was successfully built and verified using the image tag:
+
+```text
+ai-devops-platform:m2.10
+```
+
+## Run the container
+
+```powershell
+docker run --name ai-devops-platform-m2 -p 5000:5000 ai-devops-platform:m2.10
+```
+
+The application is exposed through:
+
+```text
+http://localhost:5000
+```
+
+The host port `5000` is mapped to container port `5000`.
+
+## Verify the container
+
+```powershell
+docker ps --filter "name=ai-devops-platform-m2"
+```
+
+Expected state:
+
+```text
+Up ... (healthy)
+```
+
+## Verify the application
+
+```powershell
+(Invoke-WebRequest http://localhost:5000/).StatusCode
+```
+
+Expected:
+
+```text
+200
+```
+
+```powershell
+(Invoke-WebRequest http://localhost:5000/).Content
+```
+
+Expected:
+
+```text
+AI DevOps Platform is running
+```
+
+For the health endpoint:
+
+```powershell
+(Invoke-WebRequest http://localhost:5000/health).StatusCode
+```
+
+Expected:
+
+```text
+200
+```
+
+```powershell
+(Invoke-WebRequest http://localhost:5000/health).Content
+```
+
+Expected:
+
+```json
+{"environment":"development","status":"healthy"}
+```
+
+## Runtime environment configuration
+
+The container supports runtime environment overrides.
+
+Example:
+
+```powershell
+docker run --name ai-devops-platform-m2-env -p 5001:5000 -e APP_ENV=container-test ai-devops-platform:m2.10
+```
+
+This allows the container environment to override the default `APP_ENV` without changing application source code.
+
+## Docker HEALTHCHECK
+
+The Dockerfile defines:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"
+```
+
+Docker periodically requests the application's `/health` endpoint from inside the container.
+
+A successful check produces:
+
+```text
+Health=healthy
+```
+
+The final M2 verification showed repeated health-check results with `ExitCode=0` and:
+
+```text
+FailingStreak=0
+Status=healthy
+```
+
+## Failure and recovery testing
+
+M2 also tested the container failure/recovery lifecycle.
+
+The application/container was intentionally stopped and Docker reported:
+
+```text
+exited | Health=unhealthy | ExitCode=137
+```
+
+The existing container was then started again:
+
+```powershell
+docker start ai-devops-platform-m2
+```
+
+After recovery, the final state was:
+
+```text
+running | Health=healthy | ExitCode=0
+```
+
+Both application endpoints returned HTTP `200` after recovery.
+
+> **Important:** Docker `HEALTHCHECK` detects and reports health; it does not by itself provide the full orchestration and recovery behavior that will later be handled by Kubernetes.
+
+# 16. Automated Testing
 
 The project uses `pytest` for automated testing.
 
@@ -487,7 +765,7 @@ The current test verifies that:
 
 ---
 
-# 16. Pytest Configuration
+# 17. Pytest Configuration
 
 The project contains:
 
@@ -519,7 +797,7 @@ Tells pytest to look for tests inside the `tests/` directory.
 
 ---
 
-# 17. Git Development Workflow
+# 18. Git Development Workflow
 
 Development should be performed using feature branches.
 
@@ -583,7 +861,7 @@ Changes should be reviewed and merged through the Pull Request workflow.
 
 ---
 
-# 18. Git Safety
+# 19. Git Safety
 
 The following should not be committed:
 
@@ -611,7 +889,7 @@ requirements.txt
 
 ---
 
-# 19. Important Environment Rules
+# 20. Important Environment Rules
 
 ### Rule 1 — Use the project virtual environment
 
@@ -667,7 +945,7 @@ A change should not be considered ready until the automated tests pass.
 
 ---
 
-# 20. Troubleshooting
+# 21. Troubleshooting
 
 ## Python points to the wrong environment
 
@@ -742,7 +1020,7 @@ git status
 
 ---
 
-# 21. Development Principles
+# 22. Development Principles
 
 The project will follow these principles throughout development:
 
@@ -776,7 +1054,7 @@ The platform will be developed incrementally through milestones rather than impl
 
 ---
 
-# 22. Project Roadmap
+# 23. Project Roadmap
 
 The project is planned to progress through the following stages.
 
@@ -808,14 +1086,24 @@ The project is planned to progress through the following stages.
 
 ## M2 — Docker Containerization
 
-Planned work:
+**Status: Completed**
 
-* Create Dockerfile
-* Build application image
-* Run application in Docker
-* Configure container environment
-* Add container health checks
-* Test reproducibility
+Completed work:
+
+* Verified Docker Desktop and Docker Engine.
+* Prepared the Flask application for containerization.
+* Created `.dockerignore`.
+* Created the Dockerfile.
+* Built the `ai-devops-platform:m2.10` image.
+* Ran the `ai-devops-platform-m2` container.
+* Verified host-to-container port mapping on port `5000`.
+* Tested `/` and `/health`.
+* Tested runtime environment variable override.
+* Added and verified Docker `HEALTHCHECK`.
+* Tested container failure and recovery.
+* Committed Docker changes through a feature branch.
+* Created and merged GitHub Pull Request #3 into `main`.
+* Performed final Docker and Git verification on `main`.
 
 ---
 
@@ -914,7 +1202,7 @@ Planned work:
 
 ---
 
-# 23. Final Project Goal
+# 24. Final Project Goal
 
 The final goal is to create a platform where a software change can progress through an automated DevOps lifecycle:
 
@@ -963,26 +1251,76 @@ The project aims to demonstrate how **DevOps automation, observability, and AI-a
 
 ---
 
-# 24. Current Milestone Verification
+# 25. Current Milestone Verification
 
-Before moving to the next milestone, verify:
+M0, M1, and M2 have been completed. The following checks have been verified during development:
 
 ```text
-[ ] Repository is configured correctly
-[ ] Feature branch is being used
-[ ] Python virtual environment works
-[ ] Dependencies install successfully
-[ ] Flask application starts
-[ ] GET / works
-[ ] GET /health works
-[ ] pytest runs successfully
-[ ] pytest reports 1 passed
-[ ] .env is ignored by Git
-[ ] .env.example is present
-[ ] README is up to date
+[x] Repository is configured correctly
+[x] Feature-branch workflow is used
+[x] Python virtual environment works
+[x] Dependencies install successfully
+[x] Flask application starts
+[x] GET / works
+[x] GET /health works
+[x] pytest configuration is present
+[x] .env is ignored by Git
+[x] .env.example is present
+[x] Docker Desktop/Engine works
+[x] Dockerfile is present and tracked
+[x] .dockerignore is present and tracked
+[x] Docker image builds successfully
+[x] Docker container starts successfully
+[x] Host port 5000 maps to container port 5000
+[x] Docker runtime environment override was tested
+[x] Docker HEALTHCHECK reports healthy
+[x] Container failure and recovery were tested
+[x] Docker endpoints return HTTP 200
+[x] M2 changes were merged through Pull Request #3
+[x] Local main is synchronized with origin/main
+[x] Working tree is clean
+```
+
+### Current verified Docker state
+
+```text
+Docker image:
+ai-devops-platform:m2.10
+
+Container:
+ai-devops-platform-m2
+
+Container state:
+running
+
+Health:
+healthy
+
+GET /:
+HTTP 200
+
+GET /health:
+HTTP 200
 ```
 
 ---
+
+# 26. Milestone Summary
+
+```text
+M0  GitHub Repository & Collaboration       Completed
+M1  Project Foundation & Local Development  Completed
+M2  Docker Containerization                 Completed
+M3  Jenkins CI/CD                           Planned
+M4  Infrastructure Automation               Planned
+M5  Kubernetes Deployment                   Planned
+M6  Monitoring & Observability              Planned
+M7  AI-Powered DevOps Analysis              Planned
+M8  Failure Simulation & Recovery           Planned
+M9  Integration & Final Validation          Planned
+```
+
+The project is currently ready to proceed from the completed Docker foundation into the planned CI/CD stage.
 
 ## License
 
