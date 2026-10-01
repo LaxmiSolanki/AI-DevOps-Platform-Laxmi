@@ -346,47 +346,47 @@ supported application workloads.
 
 The project will progressively use the following technologies.
 
-  -----------------------------------------------------------------------
-  Technology                          Purpose
-  ----------------------------------- -----------------------------------
-  Python                              Application and automation
-                                      development
+  ---------------------------------------------------------------------
+  Technology                         Purpose
+  ---------------------------------- ----------------------------------
+  Python                             Application and automation
+                                     development
 
-  Flask                               Current lightweight reference
-                                      application
+  Flask                              Current lightweight reference
+                                     application
 
-  FastAPI                             Possible later API-oriented
-                                      application framework
+  FastAPI                            Possible later API-oriented
+                                     application framework
 
-  pytest                              Automated testing
+  pytest                             Automated testing
 
-  Git                                 Version control
+  Git                                Version control
 
-  GitHub                              Source-code hosting and
-                                      collaboration
+  GitHub                             Source-code hosting and
+                                     collaboration
 
-  Docker                              Standardized application
-                                      containerization
+  Docker                             Standardized application
+                                     containerization
 
-  Jenkins                             CI/CD automation
+  Jenkins                            CI/CD automation
 
-  Kubernetes                          Container orchestration
+  Kubernetes                         Container orchestration
 
-  Prometheus                          Metrics collection and monitoring
+  Prometheus                         Metrics collection and monitoring
 
-  Grafana                             Monitoring dashboards and
-                                      visualization
+  Grafana                            Monitoring dashboards and
+                                     visualization
 
-  AI/LLM                              Application analysis, failure
-                                      analysis, and intelligent
-                                      recommendations
+  AI/LLM                             Application analysis, failure
+                                     analysis, and intelligent
+                                     recommendations
 
-  Ansible                             Configuration/deployment automation
-                                      where required
+  Ansible                            Configuration/deployment
+                                     automation where required
 
-  Terraform                           Infrastructure provisioning where
-                                      required
-  -----------------------------------------------------------------------
+  Terraform                          Infrastructure provisioning where
+                                     required
+  ---------------------------------------------------------------------
 
 Technologies will be introduced gradually according to the project
 milestones.
@@ -496,7 +496,84 @@ files, editor configuration, and log files.
 
 ------------------------------------------------------------------------
 
-# 7. Prerequisites
+# 7.  Deployment Environment Strategy
+
+The platform will be developed and validated **locally first**.
+
+The local environment is the primary development and testing environment
+and may progressively include:
+
+-   Docker
+-   Jenkins
+-   Kubernetes
+-   Prometheus
+-   Grafana
+-   AI/LLM components
+-   Terraform
+-   Ansible
+
+The architecture will also be designed to support deployment to a cloud
+environment when required.
+
+**AWS may be used as a cloud deployment target for the final
+demonstration**, subject to project resources, time, and account
+availability.
+
+The platform should remain as **cloud-agnostic as reasonably
+practical**. AWS is therefore considered a deployment target rather than
+a hard dependency of the platform.
+
+The intended deployment model is:
+
+``` text
+                    AI-DevOps Platform
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+       Local Environment          Cloud Environment
+              │                         │
+         Kubernetes              AWS / Kubernetes
+              │                         │
+              └────────────┬────────────┘
+                           ▼
+                    Same Application
+                    & DevOps Workflow
+```
+
+The project will not require AWS for every milestone. Local development
+and validation will remain possible throughout the project.
+
+This separates the project into three logical layers:
+
+``` text
+Application
+    │
+    ├── Flask / FastAPI / Node.js / etc.
+    │
+    ▼
+DevOps Platform
+    │
+    ├── GitHub
+    ├── Jenkins
+    ├── Docker
+    ├── Terraform
+    ├── Ansible
+    ├── Kubernetes
+    ├── Monitoring
+    └── AI
+    │
+    ▼
+Deployment Environment
+    │
+    ├── Local
+    └── Cloud (potentially AWS)
+```
+
+The platform-level automation should remain reusable across these
+deployment environments wherever practical.
+
+# 8. Prerequisites
 
 For the completed M1 and M2 development environment, install:
 
@@ -517,7 +594,7 @@ Later milestones will introduce additional tools such as:
 
 ------------------------------------------------------------------------
 
-# 8. Clone the Repository
+# 9. Clone the Repository
 
 Clone the appropriate project repository:
 
@@ -539,7 +616,7 @@ git status
 
 ------------------------------------------------------------------------
 
-# 9. Python Virtual Environment
+# 10. Python Virtual Environment
 
 The project uses a Python virtual environment so that project
 dependencies remain isolated from the global Python installation.
@@ -564,7 +641,7 @@ inside the project directory.
 
 ------------------------------------------------------------------------
 
-# 10. Activate the Virtual Environment
+# 11. Activate the Virtual Environment
 
 For Windows PowerShell:
 
@@ -586,7 +663,7 @@ For example:
 
 ------------------------------------------------------------------------
 
-# 11. Verify the Python Environment
+# 12. Verify the Python Environment
 
 After activating the virtual environment, verify which Python executable
 is being used:
@@ -606,7 +683,7 @@ wrong Python environment can cause dependency and import errors.
 
 ------------------------------------------------------------------------
 
-# 12. Install Dependencies
+# 13. Install Dependencies
 
 With the virtual environment activated:
 
@@ -631,7 +708,7 @@ python -m pip list
 
 ------------------------------------------------------------------------
 
-# 13. Environment Configuration
+# 14. Environment Configuration
 
 The application uses environment variables for configuration.
 
@@ -668,7 +745,7 @@ to prevent accidental commits.
 
 ------------------------------------------------------------------------
 
-# 14. Run the Application
+# 15. Run the Application
 
 Make sure the virtual environment is active.
 
@@ -686,7 +763,7 @@ http://127.0.0.1:5000
 
 ------------------------------------------------------------------------
 
-# 15. Application Endpoints
+# 16. Application Endpoints
 
 ## Home Endpoint
 
@@ -739,7 +816,7 @@ the application is healthy.
 
 ------------------------------------------------------------------------
 
-# 16. Docker Containerization
+# 17. Docker Containerization
 
 Milestone 2 adds Docker support so the Flask application can be built
 and run as a reproducible container.
@@ -953,7 +1030,7 @@ Both application endpoints returned HTTP `200` after recovery.
 > does not by itself provide the full orchestration and recovery
 > behavior that will later be handled by Kubernetes.
 
-# 17. Automated Testing
+# 18. Automated Testing
 
 The project uses `pytest` for automated testing.
 
@@ -979,7 +1056,7 @@ The current test verifies that:
 
 ------------------------------------------------------------------------
 
-# 18. Pytest Configuration
+# 19. Pytest Configuration
 
 The project contains:
 
@@ -1012,7 +1089,7 @@ Tells pytest to look for tests inside the `tests/` directory.
 
 ------------------------------------------------------------------------
 
-# 19. Git Development Workflow
+# 20. Git Development Workflow
 
 Development should be performed using feature branches.
 
@@ -1076,7 +1153,7 @@ Changes should be reviewed and merged through the Pull Request workflow.
 
 ------------------------------------------------------------------------
 
-# 20. Git Safety
+# 21. Git Safety
 
 The following should not be committed:
 
@@ -1104,7 +1181,7 @@ requirements.txt
 
 ------------------------------------------------------------------------
 
-# 21. Important Environment Rules
+# 22. Important Environment Rules
 
 ### Rule 1 --- Use the project virtual environment
 
@@ -1163,7 +1240,7 @@ A change should not be considered ready until the automated tests pass.
 
 ------------------------------------------------------------------------
 
-# 22. Troubleshooting
+# 23. Troubleshooting
 
 ## Python points to the wrong environment
 
@@ -1238,7 +1315,7 @@ git status
 
 ------------------------------------------------------------------------
 
-# 23. Development Principles
+# 24. Development Principles
 
 The project will follow these principles throughout development:
 
@@ -1276,7 +1353,7 @@ than implementing the entire system at once.
 
 ------------------------------------------------------------------------
 
-# 24. Project Roadmap
+# 25. Project Roadmap
 
 The project is planned to progress through the following stages.
 
@@ -1441,7 +1518,7 @@ Planned work:
 
 ------------------------------------------------------------------------
 
-# 25. Final Project Goal
+# 26. Final Project Goal
 
 The final goal is to create a reusable AI-assisted DevOps platform where
 a supported application can progress through an automated DevOps
@@ -1501,7 +1578,7 @@ the central product.
 
 ------------------------------------------------------------------------
 
-# 26. Current Milestone Verification
+# 27. Current Milestone Verification
 
 M0, M1, and M2 have been completed. The following checks have been
 verified during development:
@@ -1556,7 +1633,7 @@ HTTP 200
 
 ------------------------------------------------------------------------
 
-# 27. Milestone Summary
+# 28. Milestone Summary
 
 ``` text
 M0  GitHub Repository & Collaboration       Completed
@@ -1578,7 +1655,7 @@ The next milestones should continue to use the current Flask reference
 workload while keeping the CI/CD and deployment design sufficiently
 modular to support additional application types later.
 
-# 28. Architecture Decision Notes
+# 29. Architecture Decision Notes
 
 These decisions should be treated as the current project direction
 unless a later milestone explicitly revises them.
