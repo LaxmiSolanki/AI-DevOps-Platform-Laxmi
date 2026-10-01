@@ -496,7 +496,7 @@ files, editor configuration, and log files.
 
 ------------------------------------------------------------------------
 
-# Deployment Environment Strategy
+# 7.  Deployment Environment Strategy
 
 The platform will be developed and validated **locally first**.
 
